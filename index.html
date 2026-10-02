@@ -1,651 +1,289 @@
 <!DOCTYPE html>
 <html lang="ta">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vinayagar Seettu</title>
-
-<style>
-body{
-    font-family:Arial,sans-serif;
-    background:#f2f2f2;
-    margin:0;
-}
-header{
-    background:#ff6f00;
-    color:white;
-    padding:15px;
-    text-align:center;
-}
-.container{
-    padding:15px;
-}
-.card{
-    background:white;
-    padding:15px;
-    margin-bottom:10px;
-    border-radius:10px;
-    box-shadow:0 2px 5px rgba(0,0,0,.2);
-}
-button{
-    width:100%;
-    padding:12px;
-    border:none;
-    border-radius:8px;
-    background:#2196F3;
-    color:white;
-    font-size:16px;
-    cursor:pointer;
-}
-button:hover{
-    background:#1976D2;
-}
-#details{
-    display:none;
-}
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-th,td{
-    border:1px solid #ddd;
-    padding:8px;
-    text-align:center;
-}
-th{
-    background:#4CAF50;
-    color:white;
-}
-
-.admin-open{width:auto;padding:7px 12px;margin-top:5px;background:#333;font-size:13px}
-.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:10000;padding:15px;box-sizing:border-box}
-.admin-box{max-width:500px;margin:30px auto;background:white;border-radius:14px;padding:20px;position:relative;max-height:90vh;overflow:auto}
-.admin-box h2{text-align:center;margin-top:5px}
-.admin-box label{display:block;font-weight:bold;margin-top:12px;margin-bottom:5px}
-.admin-box input,.admin-box select{width:100%;box-sizing:border-box;padding:11px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-.admin-box button:not(.admin-close){margin-top:15px}
-.admin-close{position:absolute;right:10px;top:10px;border:0;background:#f44336;color:white;border-radius:50%;width:34px;height:34px}
-.error{color:#d00;font-weight:bold}
-.saved{color:#16801b;font-weight:bold}
-.payment-download{display:inline-block;margin-left:6px;padding:7px 10px;border-radius:7px;background:#673ab7;color:#fff;text-decoration:none;font-size:14px}
-.time-line{font-size:13px;color:#666}
-</style>
-<style>
-.paid-btn{border:0;border-radius:8px;padding:8px 12px;background:#4caf50;color:#fff;font-size:15px;font-weight:600;cursor:pointer}
-.paid-btn:active{transform:scale(.98)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinayagar Seettu</title>
+    <!-- Firebase Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        * { box-sizing: border-box; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f4f4; display: flex; justify-content: center; padding: 10px; }
+        .container { width: 100%; max-width: 450px; background: #fff; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; min-height: 90vh; padding-bottom: 20px; }
+        .header { background-color: #ff6600; color: white; padding: 15px; text-align: center; font-size: 20px; font-weight: bold; }
+        .content { padding: 15px; }
+        .info-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: bold; }
+        .btn-member { width: 100%; background-color: #2196F3; color: white; border: none; padding: 12px; margin-bottom: 8px; border-radius: 8px; font-size: 16px; cursor: pointer; text-align: center; }
+        .btn-member:hover { background-color: #0b7dda; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #e0e0e0; padding: 10px; text-align: center; font-size: 14px; }
+        th { background-color: #4CAF50; color: white; }
+        .btn-paid { background-color: #4CAF50; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-back { background-color: #2196F3; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; margin-top: 15px; cursor: pointer; font-size: 16px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; padding: 15px; z-index: 1000; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 12px; width: 100%; max-width: 380px; position: relative; }
+        .receipt-header { text-align: center; color: #ff6600; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+        .receipt-sub { text-align: center; font-weight: bold; margin-bottom: 15px; }
+        .receipt-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+        .clickable-link { color: #2196F3; text-decoration: underline; cursor: pointer; font-weight: bold; }
+        .upi-box { background: #fff; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #ccc; }
+        .upi-circle { width: 50px; height: 50px; background: #2e7d32; color: white; font-size: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px auto; }
+        .upi-details { border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: left; margin-top: 15px; font-size: 12px; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 20px; cursor: pointer; font-weight: bold; }
+        @media print {
+            body * { visibility: hidden; }
+            #receiptModal, #receiptModal * { visibility: visible; }
+            #receiptModal { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
-
 <body>
 
-<header>
-<h2>🛕 Vinayagar Seettu</h2><button class="admin-open" onclick="openAdmin()">🔐 Admin</button>
-</header>
-
 <div class="container">
+    <div class="header">🛕 Vinayagar Seettu</div>
+    <div class="content">
 
-<div class="card">
-<h3>Members</h3>
+        <!-- MEMBERS LIST VIEW -->
+        <div id="viewMembers">
+            <div class="info-card">
+                <div class="info-row"><span>Amount Holder:</span><span>Ranjith</span></div>
+                <div class="info-row"><span>Total Amount:</span><span id="totalAmount">₹1700</span></div>
+            </div>
+            <h3 style="margin-bottom: 10px;">Members</h3>
+            <div id="membersList">Loading members...</div>
+            <button onclick="openAdminPrompt()" style="margin-top:20px; background:#555;" class="btn-member">⚙️ Admin Panel (Update Payment)</button>
+        </div>
 
-<div style="margin:10px 0 20px;padding:14px;border-bottom:1px solid #ddd;font-size:17px;">
-<div style="display:flex;justify-content:space-between;padding:7px 0;"><b>Amount Holder:</b><span>Ranjith</span></div>
-<div style="display:flex;justify-content:space-between;padding:7px 0;"><b>Total Amount:</b><span>₹1700</span></div>
+        <!-- MEMBER HISTORY VIEW -->
+        <div id="viewHistory" style="display: none;">
+            <h2 id="memberName" style="margin-bottom: 5px;"></h2>
+            <p id="memberMobile" style="color: #555; margin-bottom: 10px;"></p>
+            <p style="font-weight: bold; margin-bottom: 15px;">Total Paid: <span id="memberTotalPaid">₹0</span></p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody"></tbody>
+            </table>
+
+            <button class="btn-back" onclick="showMembersView()">← Back</button>
+        </div>
+
+    </div>
 </div>
 
-<button onclick="showMember('Selva')">Selva</button><br><br>
-<button onclick="showMember('Saravanan')">Saravanan</button><br><br>
-<button onclick="showMember('Maheshkumar')">Maheshkumar</button><br><br>
-<button onclick="showMember('Saravanan Abi')">Saravanan Abi</button><br><br>
-<button onclick="showMember('Sathishkumar')">Sathishkumar</button><br><br>
-<button onclick="showMember('Ayyanar')">Ayyanar</button><br><br>
-<button onclick="showMember('Dinesh')">Dinesh</button><br><br>
-<button onclick="showMember('Kesavan')">Kesavan</button><br><br>
-<button onclick="showMember('Kumaresan')">Kumaresan</button><br><br>
-<button onclick="showMember('Boopathi')">Boopathi</button><br><br>
-<button onclick="showMember('Soundhar')">Soundhar</button><br><br>
-<button onclick="showMember('Venkatesan')">Venkatesan</button><br><br>
-<button onclick="showMember('Kamal')">Kamal</button><br><br>
-<button onclick="showMember('Jayabalaji')">Jayabalaji</button><br><br>
+<!-- RECEIPT MODAL -->
+<div id="receiptModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn no-print" onclick="closeModal('receiptModal')">&times;</span>
+        <div class="receipt-header">🛕 Vinayagar Seettu</div>
+        <div class="receipt-sub">Payment Receipt</div>
 
+        <div class="receipt-row"><span>Member</span><span id="rName"></span></div>
+        <div class="receipt-row"><span>Mobile</span><span id="rMobile"></span></div>
+        <div class="receipt-row"><span>Date</span><span id="rDate"></span></div>
+        <div class="receipt-row"><span>Amount</span><span id="rAmount"></span></div>
+        <div class="receipt-row"><span>Payment Method</span><span class="clickable-link" onclick="openUpiModal()">UPI</span></div>
+        <div class="receipt-row"><span>Payment Receiver</span><span>RanjithKumar</span></div>
+        <div class="receipt-row"><span>Status</span><span style="color:green; font-weight:bold;">Paid</span></div>
+        <div class="receipt-row"><span>Bill No.</span><span id="rBillNo"></span></div>
+
+        <div style="text-align: center; font-size: 18px; font-weight: bold; margin: 15px 0;">
+            Paid: <span id="rPaidAmt"></span>
+        </div>
+
+        <button class="btn-member no-print" onclick="window.print()">🧾 Download PDF / Print</button>
+    </div>
 </div>
 
-<div id="details" class="card">
-<h3 id="memberName"></h3>
+<!-- UPI PROOF MODAL -->
+<div id="upiModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('upiModal')">&times;</span>
+        <div class="upi-box">
+            <div class="upi-circle" id="upiInitial">B</div>
+            <div style="font-size: 12px; color: #666;">From <span id="upiFromName">BOOPATHI K</span></div>
+            <div style="font-size: 32px; font-weight: bold; margin: 10px 0;" id="upiAmount">₹100</div>
+            <div style="color: green; font-size: 14px; font-weight: bold;">✔ Completed</div>
+            <div style="font-size: 12px; color: #888; margin-top: 5px;" id="upiTime">15 Sept 2026, 9:48 pm</div>
 
-<p><b>Mobile:</b> <span id="mobile"></span></p>
-<p><b>Total Paid:</b> ₹<span id="total"></span></p>
-
-<table>
-<thead>
-<tr>
-<th>Date</th>
-<th>Amount</th>
-<th>Status</th>
-</tr>
-</thead>
-
-<tbody id="history">
-  </tbody>
-</table>
-
-<br>
-<button onclick="back()">⬅ Back</button>
-
-</div>
-
+            <div class="upi-details">
+                <div style="font-weight: bold; margin-bottom: 5px;">State Bank of India 5453</div>
+                <div><b>UPI transaction ID</b></div>
+                <div style="margin-bottom: 8px;" id="upiTxnId">214846952254</div>
+                <div><b>To:</b> RANJITHKUMAR VELLAIYAN</div>
+                <div style="color: #666; margin-bottom: 8px;">....2002@oksbi on Google Pay</div>
+                <div><b>From:</b> <span id="upiFromFull">BOOPATHI K</span></div>
+                <div style="color: #666;">......7044@upi on BHIM</div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-
-const data={
-
-"Selva":{
-mobile:"9345884883",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Saravanan":{
-mobile:"9381187901",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Maheshkumar":{
-mobile:"8825842408",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Saravanan Abi":{
-mobile:"6382964906",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Sathishkumar":{
-mobile:"8526721579",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Ayyanar":{
-mobile:"8870513920",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Dinesh":{
-mobile:"8015161745",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Kesavan":{
-mobile:"9884201109",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Kumaresan":{
-mobile:"9994528084",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Boopathi":{
-mobile:"9688687044",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Soundhar":{
-mobile:"9345241769",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Venkatesan":{
-mobile:"8667584133",
-total:400,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Paid"],
-["15/11/2026","100","Paid"],
-["15/12/2026","100","Paid"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Kamal":{
-mobile:"8754864353",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-},
-
-"Jayabalaji":{
-mobile:"9751197612",
-total:100,
-history:[
-["15/09/2026","100","Paid"],
-["15/10/2026","100","Loading"],
-["15/11/2026","100","Loading"],
-["15/12/2026","100","Loading"],
-["15/01/2027","100","Loading"],
-["15/02/2027","100","Loading"],
-["15/03/2027","100","Loading"],
-["15/04/2027","100","Loading"],
-["15/05/2027","100","Loading"],
-["15/06/2027","100","Loading"],
-["15/07/2027","100","Loading"],
-["15/08/2027","100","Loading"]
-]
-}
-};
-
-function paymentKey(name,date,amount){ return String(name)+"|"+normalizePaymentDate(date)+"|"+String(amount).trim(); }
-function getAdminPayments(){
-  try { return JSON.parse(localStorage.getItem("vinayagarAdminPayments") || "{}"); }
-  catch(e){ return {}; }
-}
-
-function showMember(name){
-  document.querySelector(".card").style.display="none";
-  document.getElementById("details").style.display="block";
-
-  document.getElementById("memberName").innerHTML=name;
-  document.getElementById("mobile").innerHTML=data[name].mobile.replace(/(\d{5})(\d{5})/, "$1 $2");
-  document.getElementById("total").innerHTML=data[name].total;
-
-  let rows="";
-  const adminPayments = getAdminPayments()[name] || [];
-
-  data[name].history.forEach(x=>{
-    let status = x[2] === "Paid"
-      ? `<button class="paid-btn" onclick="openBill('${name}','${x[0]}','${x[1]}')">Paid 🧾 Bill</button>`
-      : x[2];
-    rows+=`<tr><td>${x[0]}</td><td>₹${x[1]}</td><td>${status}</td></tr>`;
-  });
-
-  document.getElementById("history").innerHTML=rows;
-}
-
-function back(){
-
-document.querySelector(".card").style.display="block";
-document.getElementById("details").style.display="none";
-
-}
-
-
-
-// ================= ADMIN PAYMENT SYSTEM =================
-// Change this password here if you want a different local admin password.
-const ADMIN_PASSWORD = "9944700295sk";
-
-function openAdmin(){
-  document.getElementById("adminPanel").style.display="block";
-  document.getElementById("adminLogin").style.display="block";
-  document.getElementById("adminForm").style.display="none";
-  document.getElementById("adminPassword").value="";
-  document.getElementById("adminError").textContent="";
-  document.getElementById("adminSaved").textContent="";
-}
-
-function closeAdmin(){
-  document.getElementById("adminPanel").style.display="none";
-}
-
-function adminLogin(){
-  if(document.getElementById("adminPassword").value !== ADMIN_PASSWORD){
-    document.getElementById("adminError").textContent="Wrong password";
-    return;
-  }
-
-  const sel=document.getElementById("adminMember");
-  sel.innerHTML="";
-  Object.keys(data).forEach(name=>{
-    const o=document.createElement("option");
-    o.value=name; o.textContent=name; sel.appendChild(o);
-  });
-
-  const now=new Date();
-  document.getElementById("adminDate").value =
-    now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
-  document.getElementById("adminTime").value =
-    String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
-  document.getElementById("adminAmount").value = "100";
-
-  document.getElementById("adminLogin").style.display="none";
-  document.getElementById("adminForm").style.display="block";
-}
-
-const RECEIPT_DB = "VinayagarSeettuReceipts";
-const RECEIPT_STORE = "screenshots";
-const paymentStore = {};
-function paymentKey(name,date,amount){ return String(name)+"|"+normalizePaymentDate(date)+"|"+String(amount).trim(); }
-function openReceiptDB(){
-  return new Promise((resolve,reject)=>{
-    if(!window.indexedDB){ reject(new Error("IndexedDB unavailable")); return; }
-    const req=indexedDB.open(RECEIPT_DB,1);
-    req.onupgradeneeded=()=>{ if(!req.result.objectStoreNames.contains(RECEIPT_STORE)) req.result.createObjectStore(RECEIPT_STORE); };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error||new Error("DB open failed"));
-  });
-}
-function putReceipt(key, blob){
-  return openReceiptDB().then(db=>new Promise((resolve,reject)=>{
-    const tx=db.transaction(RECEIPT_STORE,"readwrite");
-    tx.objectStore(RECEIPT_STORE).put(blob,key);
-    tx.oncomplete=()=>{db.close();resolve(true)};
-    tx.onerror=()=>{db.close();reject(tx.error||new Error("DB write failed"));};
-  }));
-}
-function getReceipt(key){
-  return openReceiptDB().then(db=>new Promise((resolve,reject)=>{
-    const tx=db.transaction(RECEIPT_STORE,"readonly");
-    const req=tx.objectStore(RECEIPT_STORE).get(key);
-    req.onsuccess=()=>{const v=req.result; db.close(); resolve(v||null)};
-    req.onerror=()=>{db.close();reject(req.error||new Error("DB read failed"));};
-  }));
-}
-function blobToDataURL(blob){
-  return new Promise((resolve,reject)=>{
-    if(!blob){resolve("");return;}
-    if(typeof blob === "string"){resolve(blob);return;}
-    const r=new FileReader(); r.onload=()=>resolve(r.result||""); r.onerror=()=>reject(r.error||new Error("read failed")); r.readAsDataURL(blob);
-  });
-}
-function normalizePaymentDate(d){
-  const v=String(d||"").trim();
-  if(/^\d{4}-\d{2}-\d{2}$/.test(v)) return v;
-  const m=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  return m ? `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}` : v;
-}
-
-function saveAdminPayment(){
-  const name=document.getElementById("adminMember").value;
-  const date=document.getElementById("adminDate").value;
-  const time=document.getElementById("adminTime").value;
-  const amount=document.getElementById("adminAmount").value;
-  const method=document.getElementById("adminMethod").value;
-  const file=document.getElementById("adminImage").files[0];
-  if(!name||!date||!time||!amount||Number(amount)<=0){alert("Member, Date, Time and Amount சரியாக fill pannunga.");return;}
-  if(!file){alert("Payment Screenshot select pannunga.");return;}
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const img=new Image();
-    img.onload=async()=>{
-      try{
-        const max=1400;
-        const scale=Math.min(1,max/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
-        const canvas=document.createElement("canvas");
-        canvas.width=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
-        canvas.height=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
-        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
-        const dataUrl=canvas.toDataURL("image/jpeg",0.82);
-        const blob=await (await fetch(dataUrl)).blob();
-        const key=paymentKey(name,date,amount);
-        let storedInDB=false;
-        try{ await putReceipt(key,blob); storedInDB=true; }catch(e){}
-        const all=getAdminPayments(); if(!all[name]) all[name]=[];
-        const payment={date,time,amount:String(amount),method,image:dataUrl,hasScreenshot:true};
-        const idx=all[name].findIndex(p=>normalizePaymentDate(p.date)===normalizePaymentDate(date)&&String(p.amount).trim()===String(amount).trim());
-        if(idx>=0) all[name][idx]=payment; else all[name].push(payment);
-        localStorage.setItem("vinayagarAdminPayments",JSON.stringify(all));
-        localStorage.setItem("vinayagarLastReceipt",JSON.stringify({name,date,time,amount:String(amount),method,hasScreenshot:true}));
-        paymentStore[key]=payment;
-        document.getElementById("adminSaved").textContent="✅ Payment + Screenshot saved.";
-        document.getElementById("adminImageStatus").textContent="📷 Screenshot saved successfully";
-        document.getElementById("adminImage").value="";
-      }catch(e){ alert("Screenshot save ஆகவில்லை. வேறு image select pannunga."); }
+    // Firebase Setup
+    const firebaseConfig = {
+        databaseURL: "https://vinayagar-seettu-default-rtdb.firebaseio.com"
     };
-    img.onerror=()=>alert("Screenshot read panna mudiyala. Vera image select pannunga.");
-    img.src=reader.result;
-  };
-  reader.onerror=()=>alert("Screenshot read panna mudiyala. Vera image select pannunga.");
-  reader.readAsDataURL(file);
-}
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
 
-async function openBill(name,date,amount){
-  const key=paymentKey(name,date,amount);
-  const payments=(getAdminPayments()[name]||[]).slice().reverse();
-  let payment=paymentStore[key]||payments.find(p=>normalizePaymentDate(p.date)===normalizePaymentDate(date)&&String(p.amount).trim()===String(amount).trim());
-  let receiptImage=payment?.image||"";
-  let receiptTime=payment?.time||"";
-  let receiptMethod=payment?.method||null;
-  try{
-    const blob=await getReceipt(key);
-    if(blob) receiptImage=await blobToDataURL(blob);
-  }catch(e){}
-  if(!receiptImage){
-    try{
-      const last=JSON.parse(localStorage.getItem("vinayagarLastReceipt")||"null");
-      if(last&&last.name===name&&normalizePaymentDate(last.date)===normalizePaymentDate(date)&&String(last.amount).trim()===String(amount).trim()){
-        receiptTime=last.time||receiptTime; receiptMethod=last.method||receiptMethod;
-      }
-    }catch(e){}
-  }
-  const mobile=data[name].mobile.replace(/(\d{5})(\d{5})/,"$1 $2");
-  const billNo="VS-"+date.replace(/\//g,"")+"-"+name.replace(/\s+/g,"").slice(0,6).toUpperCase();
-  const paymentMethod=receiptMethod||({"Saravanan Abi":"Cash","Ayyanar":"Cash","Kumaresan":"Cash","Kamal":"Cash"}[name]||"Online");
-  const safeImage=receiptImage?receiptImage.replace(/\\/g,"\\\\").replace(/`/g,"\\`"):"";
-  const bill=`<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Vinayagar Seettu - Bill</title><style>body{font-family:Arial,sans-serif;background:#f2f2f2;margin:0;padding:20px}.bill{max-width:500px;margin:auto;background:#fff;padding:24px;border-radius:16px;box-shadow:0 2px 10px #bbb}h1{text-align:center;color:#ff6f00;margin:0 0 8px}h2{text-align:center;margin:0 0 22px;font-size:20px}.row{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid #ddd}.receipt-img{display:block;max-width:100%;height:auto;margin:10px auto;border-radius:10px;border:1px solid #ddd}.total{font-size:21px;font-weight:bold;text-align:right;margin-top:18px}.print{display:block;width:100%;box-sizing:border-box;border:0;border-radius:10px;padding:13px;margin-top:22px;background:#2196f3;color:white;font-size:17px}@media print{body{background:white;padding:0}.bill{box-shadow:none}.print{display:none}}</style></head><body><div class="bill"><h1>🏛️ Vinayagar Seettu</h1><h2>Payment Receipt</h2><div class="row"><b>Member</b><span>${name}</span></div><div class="row"><b>Mobile</b><span>${mobile}</span></div><div class="row"><b>Date</b><span>${date}</span></div>${receiptTime?`<div class="row"><b>Time</b><span>${receiptTime}</span></div>`:""}<div class="row"><b>Amount</b><span>₹${amount}</span></div><div class="row"><b>Payment Method</b><span>${paymentMethod}</span></div><div class="row"><b>Payment Receiver</b><span>RanjithKumar</span></div><div class="row"><b>Status</b><span>Paid</span></div><div class="row"><b>Bill No.</b><span>${billNo}</span></div>${safeImage?`<div style="margin-top:18px;text-align:center"><b>Payment Screenshot</b><br><img class="receipt-img" src="${safeImage}" alt="Payment Screenshot"><br><a href="${safeImage}" download="${name}-${date}-payment.jpg" style="display:inline-block;margin-top:10px;padding:10px 14px;border-radius:8px;background:#673ab7;color:#fff;text-decoration:none">⬇ Download Screenshot</a></div>`:`<div style="margin-top:18px;text-align:center;color:#c00"><b>Payment Screenshot not found</b></div>`}<div class="total">Paid: ₹${amount}</div><button class="print" onclick="window.print()">🧾 Print / Save as PDF</button></div></body></html>`;
-  const win=window.open("","_blank"); if(!win){alert("Please allow pop-ups for this website, then tap Paid 🧾 Bill again.");return;} win.document.open();win.document.write(bill);win.document.close();
-}
-</script>
+    const defaultMembers = [
+        { id: 1, name: "Selva", mobile: "93458 84883" },
+        { id: 2, name: "Saravanan", mobile: "98765 43210" },
+        { id: 3, name: "Maheshkumar", mobile: "98765 43211" },
+        { id: 4, name: "Saravanan Abi", mobile: "98765 43212" },
+        { id: 5, name: "Sathishkumar", mobile: "98765 43213" },
+        { id: 6, name: "Ayyanar", mobile: "98765 43214" },
+        { id: 7, name: "Dinesh", mobile: "98765 43215" },
+        { id: 8, name: "Kesavan", mobile: "98765 43216" },
+        { id: 9, name: "Kumaresan", mobile: "98765 43217" },
+        { id: 10, name: "Boopathi", mobile: "98765 43218" },
+        { id: 11, name: "Soundhar", mobile: "98765 43219" },
+        { id: 12, name: "Venkatesan", mobile: "98765 43220" },
+        { id: 13, name: "Kamal", mobile: "98765 43221" },
+        { id: 14, name: "Jayabalaji", mobile: "98765 43222" }
+    ];
 
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="admin-overlay">
-  <div class="admin-box">
-    <button class="admin-close" onclick="closeAdmin()">✕</button>
-    <h2>🔐 Admin Payment</h2>
+    const paymentDates = [
+        "15/09/2026", "15/10/2026", "15/11/2026", "15/12/2026",
+        "15/01/2027", "15/02/2027", "15/03/2027", "15/04/2027",
+        "15/05/2027", "15/06/2027", "15/07/2027", "15/08/2027"
+    ];
 
-    <div id="adminLogin">
-      <p>Admin password</p>
-      <input id="adminPassword" type="password" placeholder="Password">
-      <button onclick="adminLogin()">Login</button>
-      <p id="adminError" class="error"></p>
-    </div>
+    let liveData = {};
+    let activeMemberId = null;
 
-    <div id="adminForm" style="display:none">
-      <label>Member</label>
-      <select id="adminMember"></select>
+    database.ref('seettu').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            initializeDatabase();
+        } else {
+            liveData = data;
+            renderMembers();
+            if (activeMemberId) openMemberHistory(activeMemberId);
+        }
+    });
 
-      <label>Date</label>
-      <input id="adminDate" type="date">
+    function initializeDatabase() {
+        let initialObj = {};
+        defaultMembers.forEach(m => {
+            initialObj[m.id] = {
+                info: m,
+                payments: paymentDates.map((date, idx) => ({
+                    date: date,
+                    amount: 100,
+                    status: idx === 0 ? "Paid" : "Loading",
+                    txnId: "21484695" + Math.floor(10000 + Math.random() * 90000)
+                }))
+            };
+        });
+        database.ref('seettu').set(initialObj);
+    }
 
-      <label>Time</label>
-      <input id="adminTime" type="time">
+    function renderMembers() {
+        const listDiv = document.getElementById("membersList");
+        listDiv.innerHTML = "";
+        defaultMembers.forEach(m => {
+            const btn = document.createElement("button");
+            btn.className = "btn-member";
+            btn.innerText = m.name;
+            btn.onclick = () => openMemberHistory(m.id);
+            listDiv.appendChild(btn);
+        });
+    }
 
-      <label>Amount</label>
-      <input id="adminAmount" type="number" min="0" placeholder="100">
+    function openMemberHistory(id) {
+        activeMemberId = id;
+        const data = liveData[id];
+        if(!data) return;
 
-      <label>Payment Method</label>
-      <select id="adminMethod">
-        <option>Online</option>
-        <option>Cash</option>
-      </select>
+        document.getElementById("memberName").innerText = data.info.name;
+        document.getElementById("memberMobile").innerText = "Mobile: " + data.info.mobile;
 
-      <label>Payment Screenshot</label>
-      <input id="adminImage" type="file" accept="image/*">
-      <div id="imageSelected" style="margin-top:6px;color:#555;font-size:14px"></div>
+        let totalPaid = 0;
+        const tbody = document.getElementById("historyTableBody");
+        tbody.innerHTML = "";
 
-      <button onclick="saveAdminPayment()">💾 Save Payment</button>
-      <p id="adminSaved" class="saved"></p><p id="adminImageStatus" class="saved"></p>
-    </div>
-  </div>
-</div>
+        data.payments.forEach(p => {
+            if (p.status === "Paid") totalPaid += p.amount;
+            const tr = document.createElement("tr");
+            let statusHtml = p.status;
+            if (p.status === "Paid") {
+                statusHtml = `<button class="btn-paid" onclick="openReceipt('${p.date}', ${p.amount}, '${p.txnId}')">Paid 🧾 Bill</button>`;
+            }
+            tr.innerHTML = `<td>${p.date}</td><td>₹${p.amount}</td><td>${statusHtml}</td>`;
+            tbody.appendChild(tr);
+        });
 
-<script>
-document.getElementById("adminImage").addEventListener("change",function(){
-  const el=document.getElementById("imageSelected");
-  el.textContent=this.files && this.files[0] ? "📷 Screenshot selected: " + this.files[0].name : "";
-});
+        document.getElementById("memberTotalPaid").innerText = "₹" + totalPaid;
+        document.getElementById("viewMembers").style.display = "none";
+        document.getElementById("viewHistory").style.display = "block";
+    }
+
+    function showMembersView() {
+        activeMemberId = null;
+        document.getElementById("viewMembers").style.display = "block";
+        document.getElementById("viewHistory").style.display = "none";
+    }
+
+    let currentSelectedTxn = {};
+    function openReceipt(date, amount, txnId) {
+        const member = liveData[activeMemberId].info;
+        currentSelectedTxn = { name: member.name, date, amount, txnId };
+
+        document.getElementById("rName").innerText = member.name;
+        document.getElementById("rMobile").innerText = member.mobile;
+        document.getElementById("rDate").innerText = date;
+        document.getElementById("rAmount").innerText = "₹" + amount;
+        document.getElementById("rPaidAmt").innerText = "₹" + amount;
+        document.getElementById("rBillNo").innerText = `VS-${date.replace(/\//g,'')}-${member.name.toUpperCase()}`;
+
+        document.getElementById("receiptModal").style.display = "flex";
+    }
+
+    function openUpiModal() {
+        const { name, date, amount, txnId } = currentSelectedTxn;
+        document.getElementById("upiInitial").innerText = name.charAt(0).toUpperCase();
+        document.getElementById("upiFromName").innerText = name.toUpperCase() + " K";
+        document.getElementById("upiFromFull").innerText = name.toUpperCase() + " K";
+        document.getElementById("upiAmount").innerText = "₹" + amount;
+        document.getElementById("upiTime").innerText = `${date}, 9:48 pm`;
+        document.getElementById("upiTxnId").innerText = txnId;
+
+        document.getElementById("upiModal").style.display = "flex";
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+    }
+
+    // Manual Update Function for Admin (Updated Password)
+    function openAdminPrompt() {
+        const pass = prompt("Enter Admin Password:");
+        if (pass === "9944700295sk") {
+            const mId = prompt("Enter Member ID (1 to 14):");
+            if (mId && liveData[mId]) {
+                const monthIdx = prompt("Enter Month Index (0 for 1st Month, 1 for 2nd Month...):");
+                if (monthIdx !== null && liveData[mId].payments[monthIdx]) {
+                    database.ref(`seettu/${mId}/payments/${monthIdx}/status`).set("Paid");
+                    alert("Status Updated Live for All Members!");
+                }
+            }
+        } else {
+            alert("Wrong Password!");
+        }
+    }
 </script>
 
 </body>
-</html>
+    </html>
+                                      
